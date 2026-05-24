@@ -339,6 +339,13 @@ function getVal(qid) {
   return null;
 }
 
+// 确保中文字符以\uXXXX转义形式输出，防止UTF-8被当成GBK双重编码
+function safeJson(obj) {
+  return JSON.stringify(obj).replace(/[^\x00-\x7F]/g, c =>
+    '\\u' + ('000' + c.charCodeAt(0).toString(16)).slice(-4)
+  );
+}
+
 async function submitSurvey() {
   const answers = {};
   const ids = Object.keys(Q_OPTIONS);
@@ -365,7 +372,7 @@ async function submitSurvey() {
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({answers, answered, total: ids.length})
+      body: safeJson({answers, answered, total: ids.length})
     });
     if (resp.status === 201) {
       showToast('提交成功！感谢您的配合 🙏', 'ok');
