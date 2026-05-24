@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>问卷数据统计面板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333}
+.header{background:linear-gradient(135deg,#1B3A5C,#2E75B6);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:20px}
+.header .sub{font-size:12px;opacity:.8}
+.main{max-width:1400px;margin:16px auto;padding:0 16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.kpi .label{font-size:12px;color:#999;margin-bottom:6px}
+.kpi .value{font-size:26px;font-weight:700;color:#1B3A5C}
+.kpi .sub{font-size:11px;color:#999;margin-top:2px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.chart-box{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.chart-box h3{font-size:14px;color:#555;margin-bottom:10px}
+.chart-box canvas{max-height:280px}
+.full{grid-column:1/-1}
+.table-box{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:12px}
+.table-box h3{font-size:14px;color:#555;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f5f7fa;padding:8px;text-align:left;font-weight:600;color:#666;border-bottom:2px solid #e8eaed}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0}
+.empty{text-align:center;padding:40px;color:#bbb;font-size:14px}
+.btn-refresh{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:13px}
+.btn-refresh:hover{background:rgba(255,255,255,.3)}
+@media(max-width:768px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .charts{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📊 档口经营调查 · 数据统计面板</h1>
+    <div class="sub" id="updateTime">加载中...</div>
+  </div>
+  <button class="btn-refresh" onclick="loadData()">🔄 刷新</button>
+</div>
+
+<div class="main">
+  <div class="kpis" id="kpis"></div>
+  <div class="charts">
+    <div class="chart-box"><h3>Q1 · 主营品类分布</h3><canvas id="cQ1"></canvas></div>
+    <div class="chart-box"><h3>Q7 · 是否有遗忘客户的情况</h3><canvas id="cQ7"></canvas></div>
+  </div>
+  <div class="charts">
+    <div class="chart-box"><h3>Q6 · 目前怎么记录客户信息</h3><canvas id="cQ6"></canvas></div>
+    <div class="chart-box"><h3>Q9 · 现在怎么算报价</h3><canvas id="cQ9"></canvas></div>
+  </div>
+  <div class="charts">
+    <div class="chart-box"><h3>Q18 · 最想要的功能 ⭐</h3><canvas id="cQ18"></canvas></div>
+    <div class="chart-box"><h3>Q19 · 愿意付多少钱/月</h3><canvas id="cQ19"></canvas></div>
+  </div>
+  <div class="charts">
+    <div class="chart-box"><h3>Q15 · 跟进提醒有用吗</h3><canvas id="cQ15"></canvas></div>
+    <div class="chart-box"><h3>Q14 · 报了价没下文会追吗</h3><canvas id="cQ14"></canvas></div>
+  </div>
+  <div class="table-box">
+    <h3>Q20 · 自由反馈（还有什么头疼的事）</h3>
+    <div id="q20list"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://pnmkrkgqqqhqheprwhvb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBubWtya2dxcXFocWhlcHJ3aHZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjQ0ODMsImV4cCI6MjA5NTE0MDQ4M30.HJlitmTpXeGuZOJ6ocxLJc_rR2ZMrw3m4QBphotL0vg';
+
+let chartInstances = {};
+
+async function loadData() {
+  try {
+    const resp = await fetch(SUPABASE_URL + '/rest/v1/survey_responses?select=*&order=created_at.desc', {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    const data = await resp.json();
+    renderAll(data);
+    document.getElementById('updateTime').textContent = '更新于 ' + new Date().toLocaleString('zh-CN') + ' · 共 ' + data.length + ' 份问卷';
+  } catch(e) {
+    document.getElementById('updateTime').textContent = '加载失败，请刷新重试';
+    console.error(e);
+  }
+}
+
+function count(data, qid, multi) {
+  const map = {};
+  data.forEach(row => {
+    const v = row.answers[qid];
+    if (!v) return;
+    if (multi && Array.isArray(v)) {
+      v.forEach(x => { map[x] = (map[x]||0)+1; });
+    } else if (typeof v === 'string') {
+      map[v] = (map[v]||0)+1;
+    }
+  });
+  return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+}
+
+function renderAll(data) {
+  destroyCharts();
+  if (!data.length) {
+    document.getElementById('kpis').innerHTML = '<div class="kpi"><div class="label">等待数据</div><div class="value">暂无</div></div>';
+    return;
+  }
+
+  // KPIs
+  const total = data.length;
+  const q18counts = count(data, 'q18');
+  const topFeature = q18counts.length ? q18counts[0][0] : '--';
+  const q19counts = count(data, 'q19');
+  const topPay = q19counts.length ? q19counts[0][0] : '--';
+  const q7counts = count(data, 'q7');
+  const forgetRate = q7counts.filter(x=>x[0].includes('经常')).reduce((s,x)=>s+x[1],0);
+  const forgetPct = total ? Math.round(forgetRate/total*100) : 0;
+
+  document.getElementById('kpis').innerHTML =
+    '<div class="kpi"><div class="label">已收集问卷</div><div class="value">'+total+'</div></div>'+
+    '<div class="kpi"><div class="label">最想要的功能</div><div class="value" style="font-size:18px">'+topFeature+'</div></div>'+
+    '<div class="kpi"><div class="label">主流付费意愿</div><div class="value">'+topPay+'</div></div>'+
+    '<div class="kpi"><div class="label">经常遗忘客户比例</div><div class="value">'+forgetPct+'%</div></div>';
+
+  // Charts
+  renderBar('cQ18', q18counts, '最想要的功能');
+  renderBar('cQ19', count(data, 'q19'), '愿意付多少钱/月');
+  renderDoughnut('cQ1', count(data, 'q1', true), '主营品类');
+  renderBar('cQ6', count(data, 'q6'), '记录客户方式');
+  renderDoughnut('cQ7', count(data, 'q7'), '遗忘客户频率');
+  renderBar('cQ9', count(data, 'q9'), '报价方式');
+  renderBar('cQ15', count(data, 'q15'), '跟进工具有用吗');
+  renderBar('cQ14', count(data, 'q14'), '报价后追不追');
+
+  // Q20 free text
+  const q20s = data.filter(r => r.answers.q20).map(r => r.answers.q20);
+  document.getElementById('q20list').innerHTML = q20s.length
+    ? '<table><thead><tr><th>#</th><th>反馈内容</th></tr></thead><tbody>'+q20s.map((t,i)=>'<tr><td>'+(i+1)+'</td><td>'+t+'</td></tr>').join('')+'</tbody></table>'
+    : '<div class="empty">暂无自由反馈</div>';
+}
+
+function renderBar(id, entries, title) {
+  const ctx = document.getElementById(id).getContext('2d');
+  chartInstances[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: entries.map(e=>e[0]),
+      datasets: [{ label: title, data: entries.map(e=>e[1]), backgroundColor: '#2E75B6' }]
+    },
+    options: {
+      indexAxis: entries.length > 4 ? 'y' : 'x',
+      responsive: true,
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function renderDoughnut(id, entries, title) {
+  const ctx = document.getElementById(id).getContext('2d');
+  const colors = ['#2E75B6','#27AE60','#E67E22','#8E44AD','#E74C3C','#F1C40F','#1ABC9C','#3498DB'];
+  chartInstances[id] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(e=>e[0]),
+      datasets: [{ data: entries.map(e=>e[1]), backgroundColor: colors.slice(0,entries.length) }]
+    },
+    options: { responsive: true }
+  });
+}
+
+function destroyCharts() {
+  Object.values(chartInstances).forEach(c => c.destroy());
+  chartInstances = {};
+}
+
+loadData();
+</script>
+</body>
+</html>
