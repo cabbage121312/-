@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>档口经营调查问卷</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;line-height:1.6}
+.header{background:linear-gradient(135deg,#1B3A5C,#2E75B6);color:#fff;padding:16px 20px;text-align:center}
+.header h1{font-size:18px;margin-bottom:4px}
+.header .sub{font-size:12px;opacity:.8}
+.container{max-width:680px;margin:0 auto;padding:12px}
+
+.section{background:#fff;border-radius:10px;padding:18px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.section h2{font-size:15px;color:#1B3A5C;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e8f0fe}
+
+.q-block{margin-bottom:14px}
+.q-block:last-child{margin-bottom:0}
+.q-label{font-size:14px;color:#333;font-weight:600;margin-bottom:6px;display:block}
+.q-label .num{display:inline-block;background:#2E75B6;color:#fff;font-size:11px;width:20px;height:20px;text-align:center;line-height:20px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.q-hint{font-size:12px;color:#999;font-weight:400;margin-left:26px}
+
+.check-group{display:flex;flex-wrap:wrap;gap:6px}
+.check-item{flex:0 0 auto}
+.check-item input{display:none}
+.check-item label{display:block;padding:8px 14px;border:1px solid #ddd;border-radius:20px;font-size:13px;cursor:pointer;transition:.2s;white-space:nowrap}
+.check-item input:checked+label{background:#e8f0fe;border-color:#2E75B6;color:#2E75B6;font-weight:600}
+
+.radio-group{display:flex;flex-wrap:wrap;gap:6px}
+.radio-item{flex:0 0 auto}
+.radio-item input{display:none}
+.radio-item label{display:block;padding:8px 14px;border:1px solid #ddd;border-radius:20px;font-size:13px;cursor:pointer;transition:.2s}
+.radio-item input:checked+label{background:#e8f0fe;border-color:#2E75B6;color:#2E75B6;font-weight:600}
+
+.input-row{display:flex;gap:8px;align-items:center}
+.input-row input{flex:1;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;min-width:0}
+.input-row .unit{font-size:13px;color:#999;white-space:nowrap}
+
+input[type="text"],input[type="number"],textarea{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+textarea{resize:vertical;min-height:60px}
+
+.sort-list{display:flex;flex-direction:column;gap:4px}
+.sort-item{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#f8faff;border-radius:8px;border:1px solid #e8eaed}
+.sort-item .letter{font-size:13px;font-weight:600;color:#2E75B6;min-width:18px}
+.sort-item select{flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;appearance:auto}
+
+.pricing-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+.pricing-table td{padding:6px 8px;border:1px solid #e8eaed}
+.pricing-table td:first-child{background:#f8faff;font-weight:600}
+.pricing-table input{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:center}
+
+.btn-submit{display:block;width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#1B3A5C,#2E75B6);color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin:12px 0 30px}
+.btn-submit:active{opacity:.9}
+
+.toast{display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;color:#fff}
+.toast-ok{background:#27AE60}
+.toast-err{background:#E74C3C}
+.toast.show{display:block}
+
+.foot{text-align:center;padding:20px;font-size:11px;color:#bbb}
+
+@media (max-width:480px){
+  .header h1{font-size:16px}
+  .section{padding:14px 12px}
+  .check-item label,.radio-item label{padding:7px 12px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 档口经营调查问卷</h1>
+  <div class="sub">了解您的日常经营需求，帮助我们打造更实用的工具</div>
+</div>
+
+<div class="container">
+
+<!-- 一、基本信息 -->
+<div class="section">
+<h2>一、基本信息</h2>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">1</span>档口主营品类</span>
+  <div class="check-group" id="q1"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">2</span>档口经营年限</span>
+  <div class="radio-group" id="q2"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">3</span>客户类型构成</span>
+  <div class="input-row">
+    <span style="font-size:13px">外贸约占</span>
+    <input type="number" id="q3export" min="0" max="100" placeholder="60" style="width:80px">
+    <span class="unit">%</span>
+    <span style="font-size:13px">内销约占</span>
+    <input type="number" id="q3domestic" min="0" max="100" placeholder="40" style="width:80px">
+    <span class="unit">%</span>
+  </div>
+  <div class="q-hint">两项合计应为100%</div>
+</div>
+</div>
+
+<!-- 二、询盘与沟通 -->
+<div class="section">
+<h2>二、询盘与沟通</h2>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">4</span>客户主要通过什么渠道联系你？</span>
+  <div class="check-group" id="q4"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">5</span>旺季一天大概接多少新客户询盘？</span>
+  <div class="radio-group" id="q5"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">6</span>目前怎么记录客户信息？</span>
+  <div class="radio-group" id="q6"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">7</span>有没有遇到过"聊过的客户忘了是谁"的情况？</span>
+  <div class="radio-group" id="q7"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">8</span>客户问得最多的问题是什么？按频率从高到低排序</span>
+  <div class="sort-list" id="q8"></div>
+</div>
+</div>
+
+<!-- 三、报价 -->
+<div class="section">
+<h2>三、报价</h2>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">9</span>你现在怎么算报价？</span>
+  <div class="radio-group" id="q9"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">10</span>以下哪些报价项目你经常要算？</span>
+  <div class="check-group" id="q10"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">11</span>有没有报完价发现自己亏了的情况？</span>
+  <div class="radio-group" id="q11"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">12</span>同一产品，不同数量的单价变化（拿卖得最好的一款填）</span>
+  <table class="pricing-table">
+    <tr><td>买 100 个</td><td><input type="number" id="q12_100" step="0.01" placeholder="单价（元）"></td></tr>
+    <tr><td>买 1000 个</td><td><input type="number" id="q12_1000" step="0.01" placeholder="单价（元）"></td></tr>
+    <tr><td>买 10000 个</td><td><input type="number" id="q12_10000" step="0.01" placeholder="单价（元）"></td></tr>
+  </table>
+</div>
+</div>
+
+<!-- 四、客户管理 -->
+<div class="section">
+<h2>四、客户管理</h2>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">13</span>老客户回头率大概多少？</span>
+  <div class="radio-group" id="q13"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">14</span>报了价没下文，你一般会不会追一下？</span>
+  <div class="radio-group" id="q14"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">15</span>如果有个工具能自动提醒"哪个客户该跟进了"，你觉得有用吗？</span>
+  <div class="radio-group" id="q15"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">16</span>你现在跟多少个活跃客户在同时沟通？</span>
+  <div class="q-hint" style="margin-left:0">活跃 = 最近一个月有联系</div>
+  <div class="radio-group" id="q16"></div>
+</div>
+</div>
+
+<!-- 五、对外贸工具的需求 -->
+<div class="section">
+<h2>五、对外贸工具的需求</h2>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">17</span>你现在用什么翻译工具跟外国客户聊？</span>
+  <div class="check-group" id="q17"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">18</span>以下功能你最想要哪个？</span>
+  <div class="radio-group" id="q18"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">19</span>你愿意为这样的工具付多少钱/月？</span>
+  <div class="radio-group" id="q19"></div>
+</div>
+
+<div class="q-block">
+  <span class="q-label"><span class="num">20</span>还有什么特别头疼的事，希望系统能帮上忙？</span>
+  <textarea id="q20" placeholder="自由填写（可选）"></textarea>
+</div>
+</div>
+
+<button class="btn-submit" onclick="submitSurvey()">✓ 提交问卷</button>
+<div class="foot">信息仅用于系统开发，不对外公开</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Supabase 公网配置（本地 /api/survey 不受影响）
+const SUPABASE_URL = 'https://pnmkrkgqqqhqheprwhvb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBubWtya2dxcXFocWhlcHJ3aHZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjQ0ODMsImV4cCI6MjA5NTE0MDQ4M30.HJlitmTpXeGuZOJ6ocxLJc_rR2ZMrw3m4QBphotL0vg';
+
+const Q_OPTIONS = {
+  q1: ['日用百货','饰品配件','玩具','文具','五金工具','箱包皮具','电子数码','针织纺织','化妆品','其他'],
+  q2: ['1年以下','1-3年','4-6年','7-10年','10年以上'],
+  q3: null,
+  q4: ['微信','义乌购','线下进店','老客户介绍','其他'],
+  q5: ['5个以下','6-15个','16-30个','30个以上'],
+  q6: ['脑子里记','微信聊天记录翻','本子手写','Excel/WPS表格','用了软件'],
+  q7: ['经常有','偶尔有','基本没有'],
+  q8: [
+    {letter:'A', text:'价格 / 数量阶梯价'},
+    {letter:'B', text:'能不能定制 / 换颜色 / 加Logo'},
+    {letter:'C', text:'运费多少 / 到某个港口多少钱'},
+    {letter:'D', text:'最快多久发货'},
+    {letter:'E', text:'有没有现货 / 最小起订量'},
+    {letter:'F', text:'产品材质 / 尺寸 / 重量'},
+    {letter:'G', text:'能不能先看样品'},
+    {letter:'H', text:'其他'}
+  ],
+  q9: ['心里估算','计算器算完在微信里回','Excel做了模板','专门的报价工具'],
+  q10: ['不同数量不同单价（阶梯价）','运费（陆运+海运/空运）','报关费','打包/托盘费','汇率换算','其他'],
+  q11: ['有过，不止一次','有过，很少','没出过问题'],
+  q12: null,
+  q13: ['不到20%','20%-40%','40%-60%','60%以上'],
+  q14: ['每次都追','大客户才追','不追，等客户自己回'],
+  q15: ['很有用','有点用','没什么用'],
+  q16: ['10个以内','10-30个','30-50个','50个以上'],
+  q17: ['微信自带翻译','Google翻译','其他APP','不用翻译'],
+  q18: ['自动记录每个客户聊到哪了','填数量和目的地就能自动算出总报价','客户三天没回自动提醒我去追','多语言翻译+自动回复'],
+  q19: ['99元','199元','299元','499元','功能真的好用可以再高'],
+  q20: null
+};
+
+function buildCheckGroup(qid) {
+  const opts = Q_OPTIONS[qid];
+  if (!opts) return;
+  const el = document.getElementById(qid);
+  opts.forEach((opt, i) => {
+    el.innerHTML += '<div class="check-item"><input type="checkbox" id="'+qid+'_'+i+'" value="'+opt+'"><label for="'+qid+'_'+i+'">'+opt+'</label></div>';
+  });
+}
+
+function buildRadioGroup(qid) {
+  const opts = Q_OPTIONS[qid];
+  if (!opts) return;
+  const el = document.getElementById(qid);
+  opts.forEach((opt, i) => {
+    el.innerHTML += '<div class="radio-item"><input type="radio" id="'+qid+'_'+i+'" name="'+qid+'" value="'+opt+'"><label for="'+qid+'_'+i+'">'+opt+'</label></div>';
+  });
+}
+
+function buildSortList() {
+  const opts = Q_OPTIONS.q8;
+  const el = document.getElementById('q8');
+  opts.forEach(item => {
+    el.innerHTML += '<div class="sort-item"><span class="letter">'+item.letter+'</span><span style="flex:1;font-size:13px">'+item.text+'</span><select id="q8_'+item.letter+'"><option value="">排第几</option><option value="1">第1位</option><option value="2">第2位</option><option value="3">第3位</option></select></div>';
+  });
+  el.innerHTML += '<div class="q-hint" style="margin-top:6px">只排前三就行</div>';
+}
+
+function init() {
+  const ids = Object.keys(Q_OPTIONS);
+  ids.forEach(qid => {
+    if (qid === 'q3' || qid === 'q12' || qid === 'q20') return;
+    if (qid === 'q8') { buildSortList(); return; }
+    if (['q1','q4','q10','q17'].includes(qid)) { buildCheckGroup(qid); return; }
+    buildRadioGroup(qid);
+  });
+}
+
+function getVal(qid) {
+  if (qid === 'q3') {
+    const ex = document.getElementById('q3export').value;
+    const dm = document.getElementById('q3domestic').value;
+    return ex || dm ? {export: ex, domestic: dm} : null;
+  }
+  if (qid === 'q8') {
+    const ranks = {};
+    Q_OPTIONS.q8.forEach(item => {
+      const v = document.getElementById('q8_'+item.letter).value;
+      if (v) ranks[v] = item.text;
+    });
+    return Object.keys(ranks).length ? ranks : null;
+  }
+  if (qid === 'q12') {
+    const v100 = document.getElementById('q12_100').value;
+    const v1000 = document.getElementById('q12_1000').value;
+    const v10000 = document.getElementById('q12_10000').value;
+    return v100 || v1000 || v10000 ? {qty100: v100, qty1000: v1000, qty10000: v10000} : null;
+  }
+  if (qid === 'q20') {
+    return document.getElementById('q20').value.trim() || null;
+  }
+
+  const opts = Q_OPTIONS[qid];
+  if (!opts) return null;
+
+  // Checkbox groups
+  if (['q1','q4','q10','q17'].includes(qid)) {
+    const checked = [];
+    opts.forEach((opt, i) => {
+      const cb = document.getElementById(qid+'_'+i);
+      if (cb && cb.checked) checked.push(opt);
+    });
+    return checked.length ? checked : null;
+  }
+
+  // Radio groups
+  for (let i = 0; i < opts.length; i++) {
+    const rb = document.getElementById(qid+'_'+i);
+    if (rb && rb.checked) return opts[i];
+  }
+  return null;
+}
+
+async function submitSurvey() {
+  const answers = {};
+  const ids = Object.keys(Q_OPTIONS);
+  let answered = 0;
+  ids.forEach(qid => {
+    const v = getVal(qid);
+    if (v !== null) { answers[qid] = v; answered++; }
+  });
+
+  // Required: Q1, Q6, Q9, Q18 at minimum
+  const required = ['q1','q6','q9','q18'];
+  const missing = required.filter(q => !answers[q]);
+  if (missing.length) {
+    showToast('请至少填写第1、6、9、18题', 'err');
+    return;
+  }
+
+  try {
+    const resp = await fetch(SUPABASE_URL + '/rest/v1/survey_responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({answers, answered, total: ids.length})
+    });
+    if (resp.status === 201) {
+      showToast('提交成功！感谢您的配合 🙏', 'ok');
+      setTimeout(() => { location.reload(); }, 2000);
+    } else {
+      showToast('提交失败，请重试', 'err');
+    }
+  } catch(e) {
+    showToast('网络错误，请检查网络后重试', 'err');
+  }
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast toast-'+type+' show';
+  setTimeout(() => { t.classList.remove('show'); }, 3000);
+}
+
+init();
+</script>
+</body>
+</html>
